@@ -1,9 +1,11 @@
 [package]
 name = "cluck"
+description = "A simple runner for development environments."
+authors = ["Andrew Rademacher"]
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+repository = "https://github.com/AndrewRademacher/cluck"
 
 [dependencies]
 anyhow = { version = "1.0.72", features = ["backtrace"] }
