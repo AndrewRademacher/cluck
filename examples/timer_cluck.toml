@@ -1,0 +1,5 @@
+[cmd.timer-1]
+exec = "cargo run --example timer -- -t"
+
+[cmd.timer-2]
+exec = "cargo run --example timer -- -t"

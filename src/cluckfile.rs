@@ -1,26 +1,31 @@
-use std::{collections::HashMap, path::PathBuf, process::Stdio};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    process::Stdio,
+    str::FromStr,
+};
 
 use anyhow::{anyhow, Result};
 use serde::Deserialize;
-use tokio::process::Child;
-
-use crate::args::Run;
+use tokio::{io::AsyncReadExt, process::Child};
 
 #[derive(Debug, Deserialize)]
 pub struct Cluckfile {
-    pub commands: Vec<Command>,
+    pub cmd: HashMap<Name, Command>,
 }
+
+pub type Name = String;
 
 #[derive(Debug, Deserialize)]
 pub struct Command {
-    pub label: String,
-    pub shell: String,
+    pub exec: String,
+    #[serde(default)]
     pub environment: HashMap<String, String>,
 }
 
 impl Command {
-    pub fn boot(self) -> Result<(String, Child)> {
-        let mut parts_iter = self.shell.split(' ');
+    pub fn boot(self) -> Result<Child> {
+        let mut parts_iter = self.exec.split(' ');
         let mut prog = tokio::process::Command::new(
             parts_iter
                 .next()
@@ -36,33 +41,35 @@ impl Command {
         prog.stdout(Stdio::piped());
         prog.stderr(Stdio::piped());
 
-        Ok((self.label, prog.spawn()?))
+        Ok(prog.spawn()?)
     }
 }
 
-impl From<String> for Command {
-    fn from(value: String) -> Self {
-        Command {
-            label: value.clone(),
-            shell: value,
-            environment: Default::default(),
-        }
-    }
-}
+impl FromStr for Cluckfile {
+    type Err = anyhow::Error;
 
-impl From<Run> for Cluckfile {
-    fn from(value: Run) -> Self {
-        Self {
-            commands: value.commands.into_iter().map(Command::from).collect(),
-        }
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(toml::from_str(s)?)
     }
 }
 
 impl Cluckfile {
+    pub async fn from_file(path: impl AsRef<Path>) -> Result<Self> {
+        Ok(toml::from_str(&tokio::fs::read_to_string(path).await?)?)
+    }
+
     pub async fn from_environment() -> Result<Self> {
         Ok(toml::from_str(
             &tokio::fs::read_to_string(Self::find_file()?).await?,
         )?)
+    }
+
+    pub async fn from_stdin() -> Result<Self> {
+        let mut file = Vec::new();
+        let mut stdin = tokio::io::stdin();
+        stdin.read_to_end(&mut file).await?;
+        let str = std::str::from_utf8(&file)?;
+        Ok(toml::from_str(str)?)
     }
 
     fn find_file() -> Result<PathBuf> {

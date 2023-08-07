@@ -14,12 +14,16 @@ mod watch;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let args = Args::parse();
-    match args.command {
-        Some(cmd) => match cmd {
-            args::Command::Run(args) => run(Cluckfile::from(args)).await,
-        },
-        None => run(Cluckfile::from_environment().await?).await,
-    }
+
+    let file = if args.stdin {
+        Cluckfile::from_stdin().await?
+    } else if let Some(path) = args.cluckfile {
+        Cluckfile::from_file(path).await?
+    } else {
+        Cluckfile::from_environment().await?
+    };
+
+    run(file).await
 }
 
 pub enum RootMessage {}
@@ -27,8 +31,8 @@ pub enum RootMessage {}
 async fn run(args: Cluckfile) -> Result<()> {
     let group = Group::new();
 
-    for command in args.commands {
-        let (label, child) = command.boot()?;
+    for (label, command) in args.cmd.into_iter() {
+        let child = command.boot()?;
         let watch = Watch::new(group.clone(), child, label)?;
         group.add_watch(watch)?;
     }
