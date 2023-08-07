@@ -5,7 +5,7 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 pub struct Args {
     /// Use a specific cluck configuration file.
-    #[clap(short = 'c', long = "cluckfile", about)]
+    #[clap(short = 'c', long = "cluckfile")]
     pub cluckfile: Option<PathBuf>,
     #[clap(subcommand)]
     pub command: Option<Command>,
@@ -20,6 +20,5 @@ pub enum Command {
 #[derive(Debug, Parser)]
 pub struct Run {
     /// Shell commands that will be run together.
-    #[clap(about)]
     pub commands: Vec<String>,
 }
