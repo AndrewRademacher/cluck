@@ -1,0 +1,20 @@
+[package]
+name = "cluck"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { version = "1.0.72", features = ["backtrace"] }
+async-trait = "0.1.72"
+bytes = "1.4.0"
+clap = { version = "4.3.19", features = ["derive"] }
+serde = { version = "1.0.181", features = ["derive"] }
+tokio = { version = "1.29.1", features = ["full"] }
+toml = "0.7.6"
+uuid = { version = "1.4.1", features = ["v4"] }
+
+[dev-dependencies]
+regex = "1.9.1"
+subprocess = "0.2.9"
