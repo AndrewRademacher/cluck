@@ -21,6 +21,7 @@ pub struct Command {
     pub exec: String,
     #[serde(default)]
     pub environment: HashMap<String, String>,
+    pub workdir: Option<PathBuf>,
 }
 
 impl Command {
@@ -36,6 +37,9 @@ impl Command {
         }
         for (k, v) in self.environment {
             prog.env(k, v);
+        }
+        if let Some(pwd) = self.workdir {
+            prog.current_dir(pwd);
         }
 
         prog.stdout(Stdio::piped());
