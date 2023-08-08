@@ -1,8 +1,6 @@
-use std::{process::Stdio, thread::sleep, time::Duration};
+use std::{thread::sleep, time::Duration};
 
 use chrono::Utc;
-
-use subprocess::Exec;
 
 fn main() {
     loop {

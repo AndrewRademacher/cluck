@@ -1,6 +1,7 @@
 use std::hash::Hash;
 
 use anyhow::{anyhow, Result};
+use console::Style;
 use tokio::{
     io::{AsyncBufReadExt, BufReader, Lines},
     process::{Child, ChildStderr, ChildStdout},
@@ -21,6 +22,7 @@ struct WatchInner {
     group: Group,
     child: Child,
     label: String,
+    style: Style,
     stdout: Lines<BufReader<ChildStdout>>,
     stderr: Lines<BufReader<ChildStderr>>,
 }
@@ -28,10 +30,10 @@ struct WatchInner {
 enum Message {}
 
 impl Watch {
-    pub fn new(group: Group, child: Child, label: String) -> Result<Self> {
+    pub fn new(group: Group, child: Child, label: String, style: Style) -> Result<Self> {
         let (tx, rx) = mpsc::unbounded_channel();
         let id = Uuid::new_v4();
-        tokio::spawn(WatchInner::new(id, rx, group, child, label)?.run());
+        tokio::spawn(WatchInner::new(id, rx, group, child, label, style)?.run());
         Ok(Self(tx, id))
     }
 
@@ -53,6 +55,7 @@ impl WatchInner {
         group: Group,
         mut child: Child,
         label: String,
+        style: Style,
     ) -> Result<Self> {
         let stdout = child
             .stdout
@@ -68,6 +71,7 @@ impl WatchInner {
             group,
             child,
             label,
+            style,
             stdout: BufReader::new(stdout).lines(),
             stderr: BufReader::new(stderr).lines(),
         })
@@ -112,7 +116,7 @@ impl WatchInner {
         let res = res?;
         match res {
             Some(value) => {
-                println!("[{}] {}", &self.label, &value);
+                println!("[{}] {}", self.style.apply_to(&self.label), &value);
                 Ok(true)
             }
             None => Ok(false),
@@ -123,7 +127,7 @@ impl WatchInner {
         let res = res?;
         match res {
             Some(value) => {
-                println!("[{}] {}", &self.label, &value);
+                println!("[{}] {}", self.style.apply_to(&self.label), &value);
                 Ok(true)
             }
             None => Ok(false),

@@ -12,6 +12,7 @@ anyhow = { version = "1.0.72", features = ["backtrace"] }
 async-trait = "0.1.72"
 bytes = "1.4.0"
 clap = { version = "4.3.19", features = ["derive"] }
+console = "0.15.7"
 serde = { version = "1.0.181", features = ["derive"] }
 tokio = { version = "1.29.1", features = ["full"] }
 toml = "0.7.6"

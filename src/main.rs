@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 use cluckfile::Cluckfile;
+use console::Style;
 use group::Group;
 use watch::Watch;
 
@@ -31,9 +32,14 @@ pub enum RootMessage {}
 async fn run(args: Cluckfile) -> Result<()> {
     let group = Group::new();
 
-    for (label, command) in args.cmd.into_iter() {
+    for (color, (label, command)) in args.cmd.into_iter().enumerate() {
         let child = command.boot()?;
-        let watch = Watch::new(group.clone(), child, label)?;
+        let watch = Watch::new(
+            group.clone(),
+            child,
+            label,
+            Style::new().color256(color as u8 + 1),
+        )?;
         group.add_watch(watch)?;
     }
 
